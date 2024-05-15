@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Home</title>
+</head>
+<body>
+<nav>
+    <ul>
+        <li><a href="/login">Login</a></li>
+        <li><a href="/register">Create account</a></li>
+    </ul>
+</nav>
+{% if current_user.is_authenticated %}
+<h1>You are logged in</h1>
+Listing URLS:
+<ul>
+    <li><a href="/logout">Logout</a></li>
+    <li><a href="/control_agents">List of Control Agents</a></li>
+    <li>http://localhost/commands/&ltint:id_of_control_agent&gt</li>
+    <li>http://localhost/action/&ltint:ca_id &gt/&lt string:command&gt &nbsp&nbsp&nbsp(Possible commands: water, heat and light)<li>
+    <li><a href="/add_ca">Add Control Agent</a></li>
+    <li><a href="/remove_ca">Remove Control Agent</a></li>
+</ul>
+    {% else %}
+<h1>You are not logged in</h1>
+{% endif %}
+</body>
+</html>
