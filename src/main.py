@@ -7,10 +7,19 @@ from flask_login import LoginManager, UserMixin, login_user, logout_user, login_
 from werkzeug.security import generate_password_hash, check_password_hash
 import aux
 from flask_paranoid import Paranoid
+from dotenv import load_dotenv
+import os
+import json
+import mqtt as mqtt
+
+# Load environment variables from .env file
+load_dotenv()
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///db.sqlite"
-app.config["SECRET_KEY"] = "absadasdsadsadsads0238147v293b9puweraewohntvorfztgwhadsadc"
+app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
+
+
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -41,12 +50,33 @@ class Commands(db.Model):
     command = db.Column(db.String(32), nullable=False)
     created_date = db.Column(db.DateTime, default=datetime.datetime.utcnow)
 
+class Pools(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    ca = db.Column(db.Integer, db.ForeignKey('control_agent.id'), nullable=False)
+    light_value = db.Column(db.Integer, nullable=False)
+
 
 db.init_app(app)
 
 with app.app_context():
     db.create_all()
 
+
+mqtt_client = mqtt.connect_mqtt()
+mqtt_client.loop_start()
+
+def subscribe(client, topic):
+    def on_message(client, userdata, msg):
+        print(f"Received `{msg.payload.decode()}` from `{msg.topic}` topic")
+        with app.app_context():
+            res = json.loads(msg.payload.decode())
+            pool = Pools(ca=res["id"], light_value=res["light_value"])
+            db.session.add(pool)
+            db.session.commit()
+
+    client.subscribe(topic)
+    client.on_message = on_message
+subscribe(mqtt_client, "arduino/pool")
 
 @login_manager.user_loader
 def loader_user(user_id):
@@ -264,6 +294,12 @@ def perform_command_user(ca_id, command):
     insert_command(command_event, ca_id)
     commands = Commands.query.filter_by(ca=ca_id).order_by(Commands.id).all()
     commands.reverse()
+    event = {
+        "id": str(ca_id),
+        "command": str(command)
+    }
+    event_data = json.dumps(event)
+    mqtt.publish(mqtt_client, event_data, "arduino/action") # Test of the mqtt
     return jsonify(""), 200
 
 
@@ -289,6 +325,20 @@ def list_commands(ca_id):
         }
         new_commands.append(temp)
     return jsonify(new_commands), 200
+
+@app.route("/test/pool")
+@login_required
+def test_pool():
+    pools = Pools.query.all()
+    new_pools: list = []
+    for i in pools:
+        temp = {
+            "id": i.id,
+            "ca": i.ca,
+            "light_value": i.light_value
+        }
+        new_pools.append(temp)
+    return jsonify(new_pools), 200
 
 
 if __name__ == "__main__":
