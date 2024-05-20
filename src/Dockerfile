@@ -15,7 +15,7 @@ RUN pip install -r requirements.txt
 RUN pip install python-dotenv
 
 # copy every content from the local file to the image
-COPY . /app
+#COPY . /app
 
 # configure the container to run in an executed manner
 ENTRYPOINT [ "python" ]
