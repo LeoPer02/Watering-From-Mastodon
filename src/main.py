@@ -11,6 +11,7 @@ from dotenv import load_dotenv
 import os
 import json
 import mqtt as mqtt
+from mastodon import Mastodon
 
 # Load environment variables from .env file
 load_dotenv()
@@ -65,6 +66,32 @@ with app.app_context():
 mqtt_client = mqtt.connect_mqtt()
 mqtt_client.loop_start()
 
+def mastodon_message(message):
+    mastodon_instance_url = 'https://mastodon.social'
+
+    client_id = os.getenv('CLIENT_ID')
+    client_secret = os.getenv('CLIENT_SECRET')
+    access_token = os.getenv('ACCESS_TOKEN')
+
+    # Authenticate with the Mastodon API
+    mastodon = Mastodon(
+        client_id=client_id,
+        client_secret=client_secret,
+        access_token=access_token,
+        api_base_url=mastodon_instance_url
+    )
+
+    # Post a message
+    def post_to_mastodon(message):
+        try:
+            mastodon.status_post(message)
+            print("Message posted successfully!")
+        except Exception as e:
+            print(f"An error occurred: {e}")
+
+    post_to_mastodon(message)
+    #post_to_mastodon("Plant 1 status:\n Water:XXX \n Light:XXX")
+
 def subscribe(client, topic):
     def on_message(client, userdata, msg):
         print(f"Received `{msg.payload.decode()}` from `{msg.topic}` topic")
@@ -73,6 +100,8 @@ def subscribe(client, topic):
             pool = Pools(ca=res["id"], light_value=res["light_value"])
             db.session.add(pool)
             db.session.commit()
+        mastodon_message(msg.payload.decode())
+
 
     client.subscribe(topic)
     client.on_message = on_message
