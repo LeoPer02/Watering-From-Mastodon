@@ -10,11 +10,16 @@ from flask_paranoid import Paranoid
 from dotenv import load_dotenv
 import os
 import json
-import mqtt as mqtt
+#import mqtt as mqtt
 from mastodon import Mastodon
-
+import paho.mqtt.client as mqtt
 # Load environment variables from .env file
 load_dotenv()
+
+# MQTT broker details
+BROKER = 'mosquitto'  # Replace with your MQTT broker address
+PORT = 1883                          # Replace with your MQTT broker port (default is 1883)
+TOPIC = 'arduino/pool'
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///db.sqlite"
@@ -63,9 +68,6 @@ with app.app_context():
     db.create_all()
 
 
-mqtt_client = mqtt.connect_mqtt()
-mqtt_client.loop_start()
-
 def mastodon_message(message):
     mastodon_instance_url = 'https://mastodon.social'
 
@@ -92,20 +94,54 @@ def mastodon_message(message):
     post_to_mastodon(message)
     #post_to_mastodon("Plant 1 status:\n Water:XXX \n Light:XXX")
 
-def subscribe(client, topic):
-    def on_message(client, userdata, msg):
+"""def on_message(client, userdata, msg):
         print(f"Received `{msg.payload.decode()}` from `{msg.topic}` topic")
+        mastodon_message(msg.payload.decode())
+        with app.app_context():
+            res = json.loads(msg.payload.decode())
+            pool = Pools(ca=res["id"], light_value=res["light_value"])
+            db.session.add(pool)
+            db.session.commit()"""
+
+def on_disconnect(client, userdata, rc):
+    if rc != 0:
+        print("Unexpected disconnection.")
+
+def on_message(client, userdata, msg):
+    print(f"Received message '{msg.payload.decode()}' on topic '{msg.topic}'")
+    try:
+        mastodon_message(msg.payload.decode())
         with app.app_context():
             res = json.loads(msg.payload.decode())
             pool = Pools(ca=res["id"], light_value=res["light_value"])
             db.session.add(pool)
             db.session.commit()
-        mastodon_message(msg.payload.decode())
+        # Process the payload here
+    except json.JSONDecodeError as e:
+        print("Failed to decode JSON:", e)
 
+def on_connect(client, userdata, flags, rc):
+    if rc == 0:
+        print("Connected to broker")
+        client.subscribe(TOPIC)
+    else:
+        print("Connection failed with code", rc)
 
-    client.subscribe(topic)
+def subscribe():
+    client = mqtt.Client()
+
+    # Assign the callback functions
+    client.on_connect = on_connect
     client.on_message = on_message
-subscribe(mqtt_client, "arduino/pool")
+    client.on_disconnect = on_disconnect
+
+    # Connect to the broker
+    client.connect(BROKER, PORT, 60)
+
+    # Blocking loop to process network traffic, dispatch callbacks, and handle reconnecting.
+    client.loop_forever()
+
+subscribe()
 
 @login_manager.user_loader
 def loader_user(user_id):
