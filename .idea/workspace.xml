@@ -4,12 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="36a107e2-74c1-4381-83aa-855340a68c95" name="Changes" comment="">
+    <list default="true" id="36a107e2-74c1-4381-83aa-855340a68c95" name="Changes" comment="Sent the commands to the /control_agents, fixed publishing and some other issues">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/src/docker-compose.yml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/instance/db.sqlite" beforeDir="false" afterPath="$PROJECT_DIR$/src/instance/db.sqlite" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/mosquitto/mosquitto.conf" beforeDir="false" afterPath="$PROJECT_DIR$/src/mosquitto/mosquitto.conf" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -137,6 +135,19 @@
       <option name="presentableId" value="Default" />
       <updated>1715094037331</updated>
     </task>
+    <task id="LOCAL-00001" summary="Sent the commands to the /control_agents, fixed publishing and some other issues">
+      <option name="closed" value="true" />
+      <created>1716290067740</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1716290067740</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Sent the commands to the /control_agents, fixed publishing and some other issues" />
+    <option name="LAST_COMMIT_MESSAGE" value="Sent the commands to the /control_agents, fixed publishing and some other issues" />
   </component>
 </project>

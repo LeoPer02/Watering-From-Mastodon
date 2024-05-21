@@ -377,22 +377,41 @@ def perform_command_user(ca_id, command):
     mqtt_client.publish("action", event_data) # Test of the mqtt
     return jsonify(""), 200
 
+@app.route("/pool", methods=["GET"])
+@login_required
+def test_pool():
+    user_id = session["user_id"]
+    if not user_id:
+        return "Bad request", 401
+    control_agents = Control_agent.query.filter_by(owner=user_id).all()
+    control_agent_list: list = []
+    for i in control_agents:
+        pools = Pools.query.filter_by(ca=i.id).all()
+        new_pools: list = []
+        for j in pools:
+            temp = {
+                "id": j.id,
+                "ca": j.ca,
+                "light_value": j.light_value
+            }
+            dup = {
+                "id": j.id - 1,
+                "ca": j.ca,
+                "light_value": j.light_value
+            }
+            if dup not in new_pools:
+                new_pools.append(temp)
+        temp = {
+            "id": i.id,
+            "ip": i.ip,
+            "port": i.port,
+            "pool": new_pools
+        }
+        control_agent_list.append(temp)
+    return jsonify(control_agent_list), 200
 
 
 ###################################### Test Section #############################################
-@app.route("/test/pool")
-@login_required
-def test_pool():
-    pools = Pools.query.all()
-    new_pools: list = []
-    for i in pools:
-        temp = {
-            "id": i.id,
-            "ca": i.ca,
-            "light_value": i.light_value
-        }
-        new_pools.append(temp)
-    return jsonify(new_pools), 200
 
 @app.route("/test/commands")
 def test_commands():
