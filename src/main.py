@@ -60,7 +60,11 @@ class Commands(db.Model):
 class Pools(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     ca = db.Column(db.Integer, db.ForeignKey('control_agent.id'), nullable=False)
-    light_value = db.Column(db.Integer, nullable=False)
+    light_value = db.Column(db.Integer, nullable=True)
+    humidity_value = db.Column(db.Integer, nullable=True)
+    temperature_value = db.Column(db.Integer, nullable=True)
+    moisture_value = db.Column(db.Integer, nullable=True)
+
 
 
 db.init_app(app)
@@ -100,14 +104,26 @@ def on_disconnect(client, userdata, rc):
 
 def on_message(client, userdata, msg):
     print(f"Received message '{msg.payload.decode()}' on topic '{msg.topic}'")
+    logging.log(logging.ERROR, f"Mensagem aqui {msg.topic}")
     try:
         mastodon_message(msg.payload.decode())
         with app.app_context():
             res = json.loads(msg.payload.decode())
-            pool = Pools(ca=res["id"], light_value=res["light_value"])
+            light_value = None
+            humidity_value = None
+            temperature_value = None
+            moisture_value = None
+            if 'light_value' in res:
+                light_value = res["light_value"]
+            if 'humidity_value' in res:
+                humidity_value  = res["humidity_value"]
+            if 'temperature_value' in res:
+                temperature_value = res["temperature_value"]
+            if 'moisture_value' in res:
+                moisture_value = res["moisture_value"]
+            pool = Pools(ca=res["id"], light_value=light_value, humidity_value=humidity_value, temperature_value=temperature_value, moisture_value=moisture_value)
             db.session.add(pool)
             db.session.commit()
-        # Process the payload here
     except json.JSONDecodeError as e:
         print("Failed to decode JSON:", e)
 
@@ -384,20 +400,26 @@ def test_pool():
     if not user_id:
         return "Bad request", 401
     control_agents = Control_agent.query.filter_by(owner=user_id).all()
-    control_agent_list: list = []
+    control_agent_list = []
     for i in control_agents:
         pools = Pools.query.filter_by(ca=i.id).all()
-        new_pools: list = []
+        new_pools = []
         for j in pools:
             temp = {
                 "id": j.id,
                 "ca": j.ca,
-                "light_value": j.light_value
+                "light_value": j.light_value,
+                "humidity_value": j.humidity_value,
+                "temperature_value": j.temperature_value,
+                "moisture_value": j.moisture_value
             }
             dup = {
                 "id": j.id - 1,
                 "ca": j.ca,
-                "light_value": j.light_value
+                "light_value": j.light_value,
+                "humidity_value": j.humidity_value,
+                "temperature_value": j.temperature_value,
+                "moisture_value": j.moisture_value
             }
             if dup not in new_pools:
                 new_pools.append(temp)
