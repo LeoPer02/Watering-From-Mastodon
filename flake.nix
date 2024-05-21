@@ -15,7 +15,7 @@
         devShells."${system}".default = pkgs.mkShell {
             inherit name ROOT;
 
-            buildInputs = with pkgs; [arduino-ide];
+            buildInputs = with pkgs; [arduino-ide python3];
 
             shellHook = '''';
 
