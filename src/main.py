@@ -1,5 +1,7 @@
 import datetime
 import ipaddress
+import logging
+import random
 
 from flask import Flask, render_template, request, url_for, redirect, session, jsonify
 from flask_sqlalchemy import SQLAlchemy
@@ -10,7 +12,6 @@ from flask_paranoid import Paranoid
 from dotenv import load_dotenv
 import os
 import json
-#import mqtt as mqtt
 from mastodon import Mastodon
 import paho.mqtt.client as mqtt
 # Load environment variables from .env file
@@ -19,7 +20,7 @@ load_dotenv()
 # MQTT broker details
 BROKER = 'mosquitto'  # Replace with your MQTT broker address
 PORT = 1883                          # Replace with your MQTT broker port (default is 1883)
-TOPIC = 'arduino/pool'
+TOPIC = 'pool'
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///db.sqlite"
@@ -92,16 +93,6 @@ def mastodon_message(message):
             print(f"An error occurred: {e}")
 
     post_to_mastodon(message)
-    #post_to_mastodon("Plant 1 status:\n Water:XXX \n Light:XXX")
-
-"""def on_message(client, userdata, msg):
-        print(f"Received `{msg.payload.decode()}` from `{msg.topic}` topic")
-        mastodon_message(msg.payload.decode())
-        with app.app_context():
-            res = json.loads(msg.payload.decode())
-            pool = Pools(ca=res["id"], light_value=res["light_value"])
-            db.session.add(pool)
-            db.session.commit()"""
 
 def on_disconnect(client, userdata, rc):
     if rc != 0:
@@ -127,8 +118,9 @@ def on_connect(client, userdata, flags, rc):
     else:
         print("Connection failed with code", rc)
 
-def subscribe():
-    client = mqtt.Client()
+
+
+def subscribe(client):
 
     # Assign the callback functions
     client.on_connect = on_connect
@@ -139,9 +131,11 @@ def subscribe():
     client.connect(BROKER, PORT, 60)
 
     # Blocking loop to process network traffic, dispatch callbacks, and handle reconnecting.
-    client.loop_forever()
+    client.loop_start()
 
-subscribe()
+
+mqtt_client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1)
+subscribe(mqtt_client)
 
 @login_manager.user_loader
 def loader_user(user_id):
@@ -231,10 +225,25 @@ def list_control_agents():
     ).all()
     control_agent_list: list = []
     for i in ControlAgents:
+        logging.log(logging.ERROR, f"For CA {i.id} Issuer: {user_id}")
+        commands = Commands.query.filter_by(issuer=user_id, ca=i.id).all()
+        logging.log(logging.ERROR, f"Size of commands: {len(commands)}")
+        new_commands: list = []
+        for j in commands:
+            temp_commands = {
+                "id": j.id,
+                "issuer": j.issuer,
+                "ca": j.ca,
+                "command": j.command,
+                "created_date": str(j.created_date)
+            }
+            new_commands.append(temp_commands)
+        logging.log(logging.ERROR, f"Commands: {new_commands}")
         temp = {
             "id": i.id,
             "ip": i.ip,
-            "port": i.port
+            "port": i.port,
+            "commands": new_commands
         }
         control_agent_list.append(temp)
     return jsonify(control_agent_list), 200
@@ -330,12 +339,13 @@ ALLOWED_COMMANDS = ['water', 'heat', 'light']
 
 
 def insert_command(command, ca_id):
+    logging.log(logging.ERROR, f"Adding: {command} for {ca_id}")
     db.session.add(command)
     row_count = Commands.query.filter_by(ca=ca_id).count()
     # Allow only a maximum of 20 commands per Control Agent to be stored in the database
     if row_count > 20:
-        first_person = Commands.query.order_by(Commands.created_date.asc()).first()
-        db.session.delete(first_person)
+        first_command = Commands.query.order_by(Commands.created_date.asc()).first()
+        db.session.delete(first_command)
     db.session.commit()
 
 
@@ -355,7 +365,7 @@ def perform_command_user(ca_id, command):
             "commands_allowed": ALLOWED_COMMANDS
         }
         return res, 201
-    command_event = Commands(issuer=ca_id, ca=ca.id, command=command)
+    command_event = Commands(issuer=user_id, ca=ca_id, command=command)
     insert_command(command_event, ca_id)
     commands = Commands.query.filter_by(ca=ca_id).order_by(Commands.id).all()
     commands.reverse()
@@ -364,33 +374,12 @@ def perform_command_user(ca_id, command):
         "command": str(command)
     }
     event_data = json.dumps(event)
-    mqtt.publish(mqtt_client, event_data, "arduino/action") # Test of the mqtt
+    mqtt_client.publish("action", event_data) # Test of the mqtt
     return jsonify(""), 200
 
 
-@app.route("/commands/<int:ca_id>", methods=['GET'])
-@login_required
-def list_commands(ca_id):
-    user_id = session["user_id"]
-    ca = Control_agent.query.filter_by(owner=user_id, id=ca_id).first()
-    if not ca:
-        res = {
-            "error": "Issuer does not own the Control Agent"
-        }
-        return res, 401
-    commands = Commands.query.filter_by(issuer=user_id, ca=ca_id).all()
-    new_commands: list = []
-    for i in commands:
-        temp = {
-                "id": i.id,
-                "issuer": i.issuer,
-                "ca": i.ca,
-                "command": i.command,
-                "created_date": str(i.created_date)
-        }
-        new_commands.append(temp)
-    return jsonify(new_commands), 200
 
+###################################### Test Section #############################################
 @app.route("/test/pool")
 @login_required
 def test_pool():
@@ -404,6 +393,22 @@ def test_pool():
         }
         new_pools.append(temp)
     return jsonify(new_pools), 200
+
+@app.route("/test/commands")
+def test_commands():
+    commands = Commands.query.all()
+    new_commands: list = []
+    for j in commands:
+        temp_commands = {
+            "id": j.id,
+            "issuer": j.issuer,
+            "ca": j.ca,
+            "command": j.command,
+            "created_date": str(j.created_date)
+        }
+        new_commands.append(temp_commands)
+    return jsonify(new_commands), 200
+
 
 
 if __name__ == "__main__":
