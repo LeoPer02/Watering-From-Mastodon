@@ -463,8 +463,9 @@ def test_commands():
 def insert_threshold(light_value, moisture_value, temperature_value, humidity_value, ca_id):
     if not ca_id:
         return
-    threshold = Threshold.query.filter_by(ca=ca_id)
+    threshold = Threshold.query.filter_by(ca=ca_id).first()
     if threshold is None:
+        logging.log(logging.ERROR, f"No threshold for ca {ca_id}")
         threshold = Threshold(ca=ca_id, light_value=light_value, moisture_value=moisture_value, temperature_value=temperature_value, humidity_value=humidity_value)
         db.session.add(threshold)
         db.session.commit()
@@ -486,20 +487,23 @@ def set_threshold():
     user_id = session["user_id"]
     if request.method == 'POST':
         try:
-            ca = int(request.form["control_agent"]) if request.form["control_agent"] else None
-            light_value = float(request.form["light_value"]) if request.form["light_value"] else None
-            moisture_value = float(request.form["moisture_value"]) if request.form["moisture_value"] else None
-            temperature_value = float(request.form["temperature_value"]) if request.form["temperature_value"] else None
-            humidity_value = float(request.form["humidity_value"]) if request.form["humidity_value"] else None
-
-            if not Control_agent.query.filter_by(id=ca, owner=user_id):
-                return "", 403
-
-            insert_threshold(light_value=light_value, moisture_value=moisture_value, temperature_value=temperature_value, humidity_value=humidity_value, ca_id=ca)
-        except ValueError:
-            return "", 500
-        if not light_value or not moisture_value or not temperature_value or not humidity_value or not ca:
-            return
+            ca = int(request.form["control_agent"]) if "control_agent" in request.form else None
+            light_value = float(request.form["light_value"]) if "light_value" in request.form else None
+            moisture_value = float(request.form["moisture_value"]) if "moisture_value" in request.form else None
+            temperature_value = float(request.form["temperature_value"]) if "temperature_value" in request.form else None
+            humidity_value = float(request.form["humidity_value"]) if "humidity_value" in request.form else None
+        except (TypeError, ValueError):
+            error = {
+                "error": "You provided an invalid value for one of the thresholds"
+            }
+            return jsonify(error), 400
+        logging.log(logging.ERROR, f"control_agent: {ca}, light_value: {light_value}, moisture_value: {moisture_value}, temperature_value: {temperature_value}, humidity_value: {humidity_value}")
+        if not Control_agent.query.filter_by(id=ca, owner=user_id).first():
+            return "", 403
+        if not ca:
+            return "", 401
+        insert_threshold(light_value=light_value, moisture_value=moisture_value, temperature_value=temperature_value, humidity_value=humidity_value, ca_id=ca)
+        return "", 200
 
 @app.route("/thresholds", methods=["GET"])
 @login_required
