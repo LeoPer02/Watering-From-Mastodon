@@ -8,7 +8,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required
 from sqlalchemy import func
 from werkzeug.security import generate_password_hash, check_password_hash
-from auxi import process_values, check_user, check_pass, too_much_light, too_much_humidity, too_much_water, too_much_heat, too_little_humidity
+from auxi import process_values, check_user, check_pass, too_much_light, too_much_humidity, too_much_water, too_much_heat, too_little_humidity, funny_plant_names
 from flask_paranoid import Paranoid
 from dotenv import load_dotenv
 import os
@@ -47,6 +47,7 @@ class Users(UserMixin, db.Model):
 
 class Control_agent(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(32), nullable=False)
     owner = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     ip = db.Column(db.String(32), nullable=False)
     port = db.Column(db.Integer, nullable=False)
@@ -141,22 +142,26 @@ def on_message(client, userdata, msg):
                 db.session.commit()
 
                 # =============== CHECK THRESHOLDS ===============
+                Ca_object = Control_agent.query.filter_by(id=id).first()
+                if Ca_object is None:
+                    return
+                name = Ca_object.name
                 threshold = Threshold.query.filter_by(ca=id).first()
                 if light_value > threshold.light_value_high:
                     random_index = random.randrange(len(too_much_light))
-                    mastodon_message(too_much_light[random_index])
+                    mastodon_message(f"{name}: {too_much_light[random_index]}")
                 if temperature_value > threshold.temperature_value_high:
                     random_index = random.randrange(len(too_much_heat))
-                    mastodon_message(too_much_heat[random_index])
+                    mastodon_message(f"{name}: {too_much_heat[random_index]}")
                 if moisture_value > threshold.moisture_value_high:
                     random_index = random.randrange(len(too_much_water))
-                    mastodon_message(too_much_water[random_index])
+                    mastodon_message(f"{name}: {too_much_water[random_index]}")
                 if humidity_value > threshold.humidity_value_high:
                     random_index = random.randrange(len(too_much_humidity))
-                    mastodon_message(too_much_humidity[random_index])
-                if humidity_value < threshold.light_value_low:
+                    mastodon_message(f"{name}: {too_much_humidity[random_index]}")
+                if humidity_value < threshold.humidity_value_low:
                     random_index = random.randrange(len(too_little_humidity))
-                    mastodon_message(too_little_humidity[random_index])
+                    mastodon_message(f"{name}: {too_little_humidity[random_index]}")
 
         except json.JSONDecodeError as e:
             print("Failed to decode JSON:", e)
@@ -347,8 +352,20 @@ def add_control_agent():
     username = session["username"]
     user_id = session["user_id"]
     if request.method == "POST":
+        if "control_agent_ip" not in request.form or "control_agent_port" not in request.form:
+            error = {
+                "error": "Invalid Parameters. Make sure you're sending a valid IP and Port"
+            }
+            return jsonify(error), 400
         ca_ip = request.form["control_agent_ip"]
         ca_port = request.form["control_agent_port"]
+        name = None
+        if "control_agent_name" not in request.form:
+            index = random.randrange(len(funny_plant_names))
+            name = funny_plant_names[index]
+            funny_plant_names.pop(index)
+        else:
+            name = request.form["control_agent_name"]
         try:
             # If this failed it will throw an error meaning the ip is invalid
             ipaddress.ip_address(ca_ip)
@@ -370,7 +387,7 @@ def add_control_agent():
                     "error": "The Ip port combination provided is already in use"
                 }
                 return res, 400
-            control_agent = Control_agent(ip=ca_ip, port=ca_port, owner=user_id)
+            control_agent = Control_agent(ip=ca_ip, port=ca_port, owner=user_id, name=name)
             db.session.add(control_agent)
             db.session.commit()
             insert_threshold(None, None, None, None, None, None, None, None, control_agent.id)
