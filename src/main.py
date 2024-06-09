@@ -462,12 +462,8 @@ def perform_command_user(ca_id, command):
     insert_command(command_event, ca_id)
     commands = Commands.query.filter_by(ca=ca_id).order_by(Commands.id).all()
     commands.reverse()
-    event = {
-        "id": str(ca_id),
-        "command": str(command)
-    }
-    event_data = json.dumps(event)
-    mqtt_client.publish("commands", event_data) # Test of the mqtt
+    event = f"{ca_id} {command}"
+    mqtt_client.publish("commands", event) # Test of the mqtt
     return jsonify(""), 200
 
 @app.route("/pool", methods=["GET"])
@@ -609,6 +605,10 @@ def set_threshold():
                          moisture_value_high=moisture_value_high, temperature_value_high=temperature_value_high,
                          temperature_value_low=temperature_value_low, humidity_value_low=humidity_value_low,
                          humidity_value_high=humidity_value_high, ca_id=ca)
+        with app.app_context():
+            t = Threshold.query.filter_by(ca=ca).first()
+            event = f"{ca}\n{t.light_value_low} {t.light_value_high}\n{t.moisture_value_low} {t.moisture_value_high}\n{t.humidity_value_low} {t.humidity_value_high}\n{t.temperature_value_low} {t.temperature_value_high}"
+            mqtt_client.publish("thresholds", event)
         return "", 200
 
 @app.route("/thresholds/<int:id>", methods=["GET"])

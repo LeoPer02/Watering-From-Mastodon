@@ -4,9 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="36a107e2-74c1-4381-83aa-855340a68c95" name="Changes" comment="Added some stuff that I honestly forgot">
+    <list default="true" id="36a107e2-74c1-4381-83aa-855340a68c95" name="Changes" comment="Mastodon messaging on threshold breach">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/auxi.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/auxi.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/instance/db.sqlite" beforeDir="false" afterPath="$PROJECT_DIR$/src/instance/db.sqlite" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -187,7 +187,15 @@
       <option name="project" value="LOCAL" />
       <updated>1717941909089</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="Mastodon messaging on threshold breach">
+      <option name="closed" value="true" />
+      <created>1717942946776</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1717942946776</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -219,6 +227,7 @@
     <MESSAGE value="pools and thresholds" />
     <MESSAGE value="Fixed Thresholds" />
     <MESSAGE value="Added some stuff that I honestly forgot" />
-    <option name="LAST_COMMIT_MESSAGE" value="Added some stuff that I honestly forgot" />
+    <MESSAGE value="Mastodon messaging on threshold breach" />
+    <option name="LAST_COMMIT_MESSAGE" value="Mastodon messaging on threshold breach" />
   </component>
 </project>
