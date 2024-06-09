@@ -4,8 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="36a107e2-74c1-4381-83aa-855340a68c95" name="Changes" comment="Sent the commands to the /control_agents, fixed publishing and some other issues">
+    <list default="true" id="36a107e2-74c1-4381-83aa-855340a68c95" name="Changes" comment="Added /pool (which returns all subscribed messages so far per Control Agent)">
+      <change afterPath="$PROJECT_DIR$/src/auxi.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/aux.py" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/instance/db.sqlite" beforeDir="false" afterPath="$PROJECT_DIR$/src/instance/db.sqlite" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.py" afterDir="false" />
     </list>
@@ -26,6 +28,18 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;LeoPer02&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;git@github.com:LeoPer02/Watering-From-Mastodon.git&quot;,
+    &quot;accountId&quot;: &quot;b1ed4a74-0953-41ff-923d-7aee9be0e755&quot;
+  }
+}</component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 4
 }</component>
@@ -35,19 +49,19 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "DefaultHtmlFileTemplate": "HTML File",
-    "Docker.src/Dockerfile.executor": "Run",
-    "Docker.src/docker-compose.yaml: Compose Deployment.executor": "Run",
-    "Docker.src: Compose Deployment.executor": "Run",
-    "Python.main.executor": "Run",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "git-widget-placeholder": "master",
-    "settings.editor.selected.configurable": "preferences.pluginManager"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;DefaultHtmlFileTemplate&quot;: &quot;HTML File&quot;,
+    &quot;Docker.src/Dockerfile.executor&quot;: &quot;Run&quot;,
+    &quot;Docker.src/docker-compose.yaml: Compose Deployment.executor&quot;: &quot;Run&quot;,
+    &quot;Docker.src: Compose Deployment.executor&quot;: &quot;Run&quot;,
+    &quot;Python.main.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;
   }
-}]]></component>
+}</component>
   <component name="RunManager" selected="Docker.src: Compose Deployment">
     <configuration name="main" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="Raspberry" />
@@ -143,11 +157,43 @@
       <option name="project" value="LOCAL" />
       <updated>1716290067740</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="Added /pool (which returns all subscribed messages so far per Control Agent)">
+      <option name="closed" value="true" />
+      <created>1716292034009</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1716292034009</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State>
+              <option name="FILTERS">
+                <map>
+                  <entry key="branch">
+                    <value>
+                      <list>
+                        <option value="master" />
+                      </list>
+                    </value>
+                  </entry>
+                </map>
+              </option>
+            </State>
+          </value>
+        </entry>
+      </map>
+    </option>
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Sent the commands to the /control_agents, fixed publishing and some other issues" />
-    <option name="LAST_COMMIT_MESSAGE" value="Sent the commands to the /control_agents, fixed publishing and some other issues" />
+    <MESSAGE value="Added /pool (which returns all subscribed messages so far per Control Agent)" />
+    <option name="LAST_COMMIT_MESSAGE" value="Added /pool (which returns all subscribed messages so far per Control Agent)" />
   </component>
 </project>

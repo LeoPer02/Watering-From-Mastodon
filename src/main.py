@@ -6,8 +6,9 @@ import random
 from flask import Flask, render_template, request, url_for, redirect, session, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required
+from sqlalchemy import func
 from werkzeug.security import generate_password_hash, check_password_hash
-import aux
+from auxi import process_values, check_user, check_pass
 from flask_paranoid import Paranoid
 from dotenv import load_dotenv
 import os
@@ -60,10 +61,18 @@ class Commands(db.Model):
 class Pools(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     ca = db.Column(db.Integer, db.ForeignKey('control_agent.id'), nullable=False)
-    light_value = db.Column(db.Integer, nullable=True)
-    humidity_value = db.Column(db.Integer, nullable=True)
-    temperature_value = db.Column(db.Integer, nullable=True)
-    moisture_value = db.Column(db.Integer, nullable=True)
+    light_value = db.Column(db.Integer, nullable=False)
+    humidity_value = db.Column(db.Integer, nullable=False)
+    temperature_value = db.Column(db.Integer, nullable=False)
+    moisture_value = db.Column(db.Integer, nullable=False)
+
+class Threshold(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    ca = db.Column(db.Integer, db.ForeignKey('control_agent.id'), nullable=False)
+    light_value = db.Column(db.Integer, nullable=False)
+    humidity_value = db.Column(db.Integer, nullable=False)
+    temperature_value = db.Column(db.Integer, nullable=False)
+    moisture_value = db.Column(db.Integer, nullable=False)
 
 
 
@@ -104,24 +113,25 @@ def on_disconnect(client, userdata, rc):
 
 def on_message(client, userdata, msg):
     print(f"Received message '{msg.payload.decode()}' on topic '{msg.topic}'")
-    logging.log(logging.ERROR, f"Mensagem aqui {msg.topic}")
+    logging.log(logging.ERROR, f"Message received on topic: {msg.topic}")
     try:
         mastodon_message(msg.payload.decode())
         with app.app_context():
-            res = json.loads(msg.payload.decode())
-            light_value = None
-            humidity_value = None
-            temperature_value = None
-            moisture_value = None
-            if 'light_value' in res:
-                light_value = res["light_value"]
-            if 'humidity_value' in res:
-                humidity_value  = res["humidity_value"]
-            if 'temperature_value' in res:
-                temperature_value = res["temperature_value"]
-            if 'moisture_value' in res:
-                moisture_value = res["moisture_value"]
-            pool = Pools(ca=res["id"], light_value=light_value, humidity_value=humidity_value, temperature_value=temperature_value, moisture_value=moisture_value)
+            logging.log(logging.ERROR, f"Message: {msg.payload} on topic: {msg.topic}")
+            if msg.payload == "":
+                return
+            id, light_value, moisture_value, temperature_value, humidity_value = process_values(msg.payload.decode())
+            if not id:
+                return
+            if not light_value:
+                light_value = db.session.query(func.avg(Pools.light_value)).scalar()
+            if not moisture_value:
+                moisture_value = db.session.query(func.avg(Pools.moisture_value)).scalar()
+            if not temperature_value:
+                temperature_value = db.session.query(func.avg(Pools.temperature_value)).scalar()
+            if not humidity_value:
+                humidity_value = db.session.query(func.avg(Pools.humidity_value)).scalar()
+            pool = Pools(ca=id, light_value=light_value, humidity_value=humidity_value, temperature_value=temperature_value, moisture_value=moisture_value)
             db.session.add(pool)
             db.session.commit()
     except json.JSONDecodeError as e:
@@ -164,11 +174,11 @@ def register():
         username = request.form["username"]
         password = request.form["password"]
 
-        user_check = aux.check_user(username)
+        user_check = check_user(username)
         if user_check is not None:
             return user_check, 201
 
-        pass_check = aux.check_pass(password)
+        pass_check = check_pass(password)
         if pass_check is not None:
             return pass_check, 201
 
@@ -198,11 +208,11 @@ def login():
     if request.method == "POST":
         username = request.form["username"]
         password = request.form["password"]
-        user_check = aux.check_user(username)
+        user_check = check_user(username)
         if user_check is not None:
             return user_check, 201
 
-        pass_check = aux.check_pass(password)
+        pass_check = check_pass(password)
         if pass_check is not None:
             return pass_check, 201
 
@@ -450,6 +460,78 @@ def test_commands():
         new_commands.append(temp_commands)
     return jsonify(new_commands), 200
 
+def insert_threshold(light_value, moisture_value, temperature_value, humidity_value, ca_id):
+    if not ca_id:
+        return
+    threshold = Threshold.query.filter_by(ca=ca_id)
+    if threshold is None:
+        threshold = Threshold(ca=ca_id, light_value=light_value, moisture_value=moisture_value, temperature_value=temperature_value, humidity_value=humidity_value)
+        db.session.add(threshold)
+        db.session.commit()
+        return
+    if light_value:
+        threshold.light_value = light_value
+    if moisture_value:
+        threshold.moisture_value = moisture_value
+    if humidity_value:
+        threshold.humidity_value = humidity_value
+    if temperature_value:
+        threshold.temperature_value = temperature_value
+    db.session.commit()
+
+@app.route("/set_thresholds", methods=['POST'])
+@login_required
+def set_threshold():
+    username = session["username"]
+    user_id = session["user_id"]
+    if request.method == 'POST':
+        try:
+            ca = int(request.form["control_agent"]) if request.form["control_agent"] else None
+            light_value = float(request.form["light_value"]) if request.form["light_value"] else None
+            moisture_value = float(request.form["moisture_value"]) if request.form["moisture_value"] else None
+            temperature_value = float(request.form["temperature_value"]) if request.form["temperature_value"] else None
+            humidity_value = float(request.form["humidity_value"]) if request.form["humidity_value"] else None
+
+            if not Control_agent.query.filter_by(id=ca, owner=user_id):
+                return "", 403
+
+            insert_threshold(light_value=light_value, moisture_value=moisture_value, temperature_value=temperature_value, humidity_value=humidity_value, ca_id=ca)
+        except ValueError:
+            return "", 500
+        if not light_value or not moisture_value or not temperature_value or not humidity_value or not ca:
+            return
+
+@app.route("/thresholds", methods=["GET"])
+@login_required
+def thresholds():
+    user_id = session["user_id"]
+    if not user_id:
+        return "Bad request", 401
+    control_agents = Control_agent.query.filter_by(owner=user_id).all()
+    control_agent_list = []
+    for i in control_agents:
+        threshold = Threshold.query.filter_by(ca=i.id).first()
+        if not threshold:
+            temp = {
+                "id": i.id,
+                "ip": i.ip,
+                "port": i.port,
+                "threshold": None
+            }
+        else:
+            temp = {
+                "id": i.id,
+                "ip": i.ip,
+                "port": i.port,
+                "threshold": {
+                    "light_value": threshold.light_value,
+                    "humidity_value": threshold.humidity_value,
+                    "temperature_value": threshold.temperature_value,
+                    "moisture_value": threshold.moisture_value
+                }
+            }
+        control_agent_list.append(temp)
+    return jsonify(control_agent_list), 200
 
 
 if __name__ == "__main__":
