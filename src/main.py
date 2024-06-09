@@ -8,7 +8,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required
 from sqlalchemy import func
 from werkzeug.security import generate_password_hash, check_password_hash
-from auxi import process_values, check_user, check_pass
+from auxi import process_values, check_user, check_pass, too_much_light, too_much_humidity, too_much_water, too_much_heat, too_little_humidity
 from flask_paranoid import Paranoid
 from dotenv import load_dotenv
 import os
@@ -121,7 +121,6 @@ def on_message(client, userdata, msg):
     logging.log(logging.ERROR, f"Message received on topic: {msg.topic}")
     if msg.topic == "pool":
         try:
-            mastodon_message(msg.payload.decode())
             with app.app_context():
                 logging.log(logging.ERROR, f"Message: {msg.payload} on topic: {msg.topic}")
                 if msg.payload == "":
@@ -140,6 +139,25 @@ def on_message(client, userdata, msg):
                 pool = Pools(ca=id, light_value=light_value, humidity_value=humidity_value, temperature_value=temperature_value, moisture_value=moisture_value)
                 db.session.add(pool)
                 db.session.commit()
+
+                # =============== CHECK THRESHOLDS ===============
+                threshold = Threshold.query.filter_by(ca=id).first()
+                if light_value > threshold.light_value_high:
+                    random_index = random.randrange(len(too_much_light))
+                    mastodon_message(too_much_light[random_index])
+                if temperature_value > threshold.temperature_value_high:
+                    random_index = random.randrange(len(too_much_heat))
+                    mastodon_message(too_much_heat[random_index])
+                if moisture_value > threshold.moisture_value_high:
+                    random_index = random.randrange(len(too_much_water))
+                    mastodon_message(too_much_water[random_index])
+                if humidity_value > threshold.humidity_value_high:
+                    random_index = random.randrange(len(too_much_humidity))
+                    mastodon_message(too_much_humidity[random_index])
+                if humidity_value < threshold.light_value_low:
+                    random_index = random.randrange(len(too_little_humidity))
+                    mastodon_message(too_little_humidity[random_index])
+
         except json.JSONDecodeError as e:
             print("Failed to decode JSON:", e)
     if msg.topic == "actions":
