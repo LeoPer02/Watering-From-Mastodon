@@ -21,7 +21,8 @@ load_dotenv()
 # MQTT broker details
 BROKER = 'mosquitto'  # Replace with your MQTT broker address
 PORT = 1883                          # Replace with your MQTT broker port (default is 1883)
-TOPIC = 'pool'
+TOPIC1 = 'pool'
+TOPIC2 = 'actions'
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///db.sqlite"
@@ -69,10 +70,14 @@ class Pools(db.Model):
 class Threshold(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     ca = db.Column(db.Integer, db.ForeignKey('control_agent.id'), nullable=False)
-    light_value = db.Column(db.Integer, nullable=False)
-    humidity_value = db.Column(db.Integer, nullable=False)
-    temperature_value = db.Column(db.Integer, nullable=False)
-    moisture_value = db.Column(db.Integer, nullable=False)
+    light_value_high = db.Column(db.Integer, nullable=False)
+    light_value_low = db.Column(db.Integer, nullable=False)
+    humidity_value_high = db.Column(db.Integer, nullable=False)
+    humidity_value_low = db.Column(db.Integer, nullable=False)
+    temperature_value_low = db.Column(db.Integer, nullable=False)
+    temperature_value_high = db.Column(db.Integer, nullable=False)
+    moisture_value_high = db.Column(db.Integer, nullable=False)
+    moisture_value_low = db.Column(db.Integer, nullable=False)
 
 
 
@@ -114,33 +119,66 @@ def on_disconnect(client, userdata, rc):
 def on_message(client, userdata, msg):
     print(f"Received message '{msg.payload.decode()}' on topic '{msg.topic}'")
     logging.log(logging.ERROR, f"Message received on topic: {msg.topic}")
-    try:
-        mastodon_message(msg.payload.decode())
-        with app.app_context():
-            logging.log(logging.ERROR, f"Message: {msg.payload} on topic: {msg.topic}")
-            if msg.payload == "":
-                return
-            id, light_value, moisture_value, temperature_value, humidity_value = process_values(msg.payload.decode())
-            if not id:
-                return
-            if not light_value:
-                light_value = db.session.query(func.avg(Pools.light_value)).scalar()
-            if not moisture_value:
-                moisture_value = db.session.query(func.avg(Pools.moisture_value)).scalar()
-            if not temperature_value:
-                temperature_value = db.session.query(func.avg(Pools.temperature_value)).scalar()
-            if not humidity_value:
-                humidity_value = db.session.query(func.avg(Pools.humidity_value)).scalar()
-            pool = Pools(ca=id, light_value=light_value, humidity_value=humidity_value, temperature_value=temperature_value, moisture_value=moisture_value)
-            db.session.add(pool)
-            db.session.commit()
-    except json.JSONDecodeError as e:
-        print("Failed to decode JSON:", e)
+    if msg.topic == "pool":
+        try:
+            mastodon_message(msg.payload.decode())
+            with app.app_context():
+                logging.log(logging.ERROR, f"Message: {msg.payload} on topic: {msg.topic}")
+                if msg.payload == "":
+                    return
+                id, light_value, moisture_value, temperature_value, humidity_value = process_values(msg.payload.decode())
+                if not id:
+                    return
+                if not light_value:
+                    light_value = db.session.query(func.avg(Pools.light_value)).scalar()
+                if not moisture_value:
+                    moisture_value = db.session.query(func.avg(Pools.moisture_value)).scalar()
+                if not temperature_value:
+                    temperature_value = db.session.query(func.avg(Pools.temperature_value)).scalar()
+                if not humidity_value:
+                    humidity_value = db.session.query(func.avg(Pools.humidity_value)).scalar()
+                pool = Pools(ca=id, light_value=light_value, humidity_value=humidity_value, temperature_value=temperature_value, moisture_value=moisture_value)
+                db.session.add(pool)
+                db.session.commit()
+        except json.JSONDecodeError as e:
+            print("Failed to decode JSON:", e)
+    if msg.topic == "actions":
+        logging.log(logging.ERROR, f"Just received an action from the arduino: {msg.payload}")
+        content = msg.payload.decode()
+        logging.log(logging.ERROR, f"Content: {content}")
+        parts = content.strip().split()
 
+        # Check if there are exactly two parts
+        if len(parts) != 2:
+            return
+
+        # Extract id and command
+        id_str, command = parts
+
+        # Validate id as integer
+        try:
+            id = int(id_str)
+        except ValueError:
+            return
+
+        # Validate command
+        if command not in ['water', 'heat', 'light']:
+            return None, None
+        with app.app_context():
+            if Control_agent.query.filter_by(id=id).first() is None:
+                return
+
+            new_command = Commands(issuer=-1, ca=id, command=command)
+            insert_command(new_command, id)
+
+
+    else:
+        pass
 def on_connect(client, userdata, flags, rc):
     if rc == 0:
         print("Connected to broker")
-        client.subscribe(TOPIC)
+        client.subscribe(TOPIC1)
+        client.subscribe(TOPIC2)
     else:
         print("Connection failed with code", rc)
 
@@ -253,9 +291,19 @@ def list_control_agents():
     for i in ControlAgents:
         logging.log(logging.ERROR, f"For CA {i.id} Issuer: {user_id}")
         commands = Commands.query.filter_by(issuer=user_id, ca=i.id).all()
+        commands_automatic = Commands.query.filter_by(issuer=-1, ca=i.id).all()
         logging.log(logging.ERROR, f"Size of commands: {len(commands)}")
         new_commands: list = []
         for j in commands:
+            temp_commands = {
+                "id": j.id,
+                "issuer": j.issuer,
+                "ca": j.ca,
+                "command": j.command,
+                "created_date": str(j.created_date)
+            }
+            new_commands.append(temp_commands)
+        for j in commands_automatic:
             temp_commands = {
                 "id": j.id,
                 "issuer": j.issuer,
@@ -307,6 +355,7 @@ def add_control_agent():
             control_agent = Control_agent(ip=ca_ip, port=ca_port, owner=user_id)
             db.session.add(control_agent)
             db.session.commit()
+            insert_threshold(None, None, None, None, None, None, None, None, control_agent.id)
             return jsonify(""), 200
         except ValueError:
             # Not legal
@@ -400,7 +449,7 @@ def perform_command_user(ca_id, command):
         "command": str(command)
     }
     event_data = json.dumps(event)
-    mqtt_client.publish("action", event_data) # Test of the mqtt
+    mqtt_client.publish("commands", event_data) # Test of the mqtt
     return jsonify(""), 200
 
 @app.route("/pool", methods=["GET"])
@@ -460,24 +509,56 @@ def test_commands():
         new_commands.append(temp_commands)
     return jsonify(new_commands), 200
 
-def insert_threshold(light_value, moisture_value, temperature_value, humidity_value, ca_id):
+def insert_threshold(light_value_low, light_value_high, moisture_value_low, moisture_value_high, temperature_value_low,
+                     temperature_value_high, humidity_value_low, humidity_value_high, ca_id):
     if not ca_id:
         return
     threshold = Threshold.query.filter_by(ca=ca_id).first()
     if threshold is None:
         logging.log(logging.ERROR, f"No threshold for ca {ca_id}")
-        threshold = Threshold(ca=ca_id, light_value=light_value, moisture_value=moisture_value, temperature_value=temperature_value, humidity_value=humidity_value)
+
+        # ====================== DEFAULT VALUES FOR THRESHOLD =============================
+
+        if not light_value_low:
+            light_value_low = 100
+        if not light_value_high:
+            light_value_high = 200
+        if not moisture_value_low:
+            moisture_value_low = 0
+        if not moisture_value_high:
+            moisture_value_high = 100
+        if not temperature_value_low:
+            temperature_value_low = 0
+        if not temperature_value_high:
+            temperature_value_high = 40
+        if not humidity_value_low:
+            humidity_value_low = 0
+        if not humidity_value_high:
+            humidity_value_high = 25
+
+        # ================== END OF DEFAULT VALUES FOR THRESHOLD ==========================
+        threshold = Threshold(ca=ca_id, light_value_low=light_value_low, light_value_high=light_value_high, moisture_value_low=moisture_value_low,
+        moisture_value_high=moisture_value_high, temperature_value_low=temperature_value_low, temperature_value_high=temperature_value_high,
+                              humidity_value_low=humidity_value_low, humidity_value_high=humidity_value_high)
         db.session.add(threshold)
         db.session.commit()
         return
-    if light_value:
-        threshold.light_value = light_value
-    if moisture_value:
-        threshold.moisture_value = moisture_value
-    if humidity_value:
-        threshold.humidity_value = humidity_value
-    if temperature_value:
-        threshold.temperature_value = temperature_value
+    if light_value_low:
+        threshold.light_value_low = light_value_low
+    if light_value_high:
+        threshold.light_value_high = light_value_high
+    if moisture_value_low:
+        threshold.moisture_value_low = moisture_value_low
+    if moisture_value_high:
+        threshold.moisture_value_high = moisture_value_high
+    if humidity_value_low:
+        threshold.humidity_value_low = humidity_value_low
+    if humidity_value_high:
+        threshold.humidity_value_high = humidity_value_high
+    if temperature_value_low:
+        threshold.temperature_value_low = temperature_value_low
+    if temperature_value_high:
+        threshold.temperature_value_low = temperature_value_high
     db.session.commit()
 
 @app.route("/set_thresholds", methods=['POST'])
@@ -488,30 +569,37 @@ def set_threshold():
     if request.method == 'POST':
         try:
             ca = int(request.form["control_agent"]) if "control_agent" in request.form else None
-            light_value = float(request.form["light_value"]) if "light_value" in request.form else None
-            moisture_value = float(request.form["moisture_value"]) if "moisture_value" in request.form else None
-            temperature_value = float(request.form["temperature_value"]) if "temperature_value" in request.form else None
-            humidity_value = float(request.form["humidity_value"]) if "humidity_value" in request.form else None
+            light_value_high = float(request.form["light_value_high"]) if "light_value_high" in request.form else None
+            light_value_low = float(request.form["light_value_low"]) if "light_value_low" in request.form else None
+            moisture_value_high = float(request.form["moisture_value_high"]) if "moisture_value_high" in request.form else None
+            moisture_value_low = float(request.form["moisture_value_low"]) if "moisture_value_low" in request.form else None
+            temperature_value_high = float(request.form["temperature_value_high"]) if "temperature_value_high" in request.form else None
+            temperature_value_low = float(request.form["temperature_value_low"]) if "temperature_value_low" in request.form else None
+            humidity_value_high = float(request.form["humidity_value_high"]) if "humidity_value_high" in request.form else None
+            humidity_value_low = float(request.form["humidity_value_low"]) if "humidity_value_low" in request.form else None
         except (TypeError, ValueError):
             error = {
                 "error": "You provided an invalid value for one of the thresholds"
             }
             return jsonify(error), 400
-        logging.log(logging.ERROR, f"control_agent: {ca}, light_value: {light_value}, moisture_value: {moisture_value}, temperature_value: {temperature_value}, humidity_value: {humidity_value}")
+        logging.log(logging.ERROR, f"control_agent: {ca}, light_value: ({light_value_low} <-> {light_value_high}), moisture_value: ({moisture_value_low} <-> {moisture_value_high}), temperature_value: ({temperature_value_low} <-> {temperature_value_high}), humidity_value: ({humidity_value_low} <-> {humidity_value_high})")
         if not Control_agent.query.filter_by(id=ca, owner=user_id).first():
             return "", 403
         if not ca:
             return "", 401
-        insert_threshold(light_value=light_value, moisture_value=moisture_value, temperature_value=temperature_value, humidity_value=humidity_value, ca_id=ca)
+        insert_threshold(light_value_low=light_value_low, light_value_high=light_value_high, moisture_value_low=moisture_value_low,
+                         moisture_value_high=moisture_value_high, temperature_value_high=temperature_value_high,
+                         temperature_value_low=temperature_value_low, humidity_value_low=humidity_value_low,
+                         humidity_value_high=humidity_value_high, ca_id=ca)
         return "", 200
 
-@app.route("/thresholds", methods=["GET"])
+@app.route("/thresholds/<int:id>", methods=["GET"])
 @login_required
-def thresholds():
+def thresholds(id):
     user_id = session["user_id"]
     if not user_id:
         return "Bad request", 401
-    control_agents = Control_agent.query.filter_by(owner=user_id).all()
+    control_agents = Control_agent.query.filter_by(owner=user_id, id=id).all()
     control_agent_list = []
     for i in control_agents:
         threshold = Threshold.query.filter_by(ca=i.id).first()
@@ -528,10 +616,14 @@ def thresholds():
                 "ip": i.ip,
                 "port": i.port,
                 "threshold": {
-                    "light_value": threshold.light_value,
-                    "humidity_value": threshold.humidity_value,
-                    "temperature_value": threshold.temperature_value,
-                    "moisture_value": threshold.moisture_value
+                    "light_value_low": threshold.light_value_low,
+                    "light_value_high": threshold.light_value_high,
+                    "humidity_value_low": threshold.humidity_value_low,
+                    "humidity_value_high": threshold.humidity_value_high,
+                    "temperature_value_low": threshold.temperature_value_low,
+                    "temperature_value_high": threshold.temperature_value_high,
+                    "moisture_value_low": threshold.moisture_value_low,
+                    "moisture_value_high": threshold.moisture_value_high
                 }
             }
         control_agent_list.append(temp)

@@ -4,7 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="36a107e2-74c1-4381-83aa-855340a68c95" name="Changes" comment="pools and thresholds">
+    <list default="true" id="36a107e2-74c1-4381-83aa-855340a68c95" name="Changes" comment="Fixed Thresholds">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/instance/db.sqlite" beforeDir="false" afterPath="$PROJECT_DIR$/src/instance/db.sqlite" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.py" afterDir="false" />
@@ -171,7 +171,15 @@
       <option name="project" value="LOCAL" />
       <updated>1717928224249</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="Fixed Thresholds">
+      <option name="closed" value="true" />
+      <created>1717930758727</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1717930758728</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -201,6 +209,7 @@
     <MESSAGE value="Sent the commands to the /control_agents, fixed publishing and some other issues" />
     <MESSAGE value="Added /pool (which returns all subscribed messages so far per Control Agent)" />
     <MESSAGE value="pools and thresholds" />
-    <option name="LAST_COMMIT_MESSAGE" value="pools and thresholds" />
+    <MESSAGE value="Fixed Thresholds" />
+    <option name="LAST_COMMIT_MESSAGE" value="Fixed Thresholds" />
   </component>
 </project>
