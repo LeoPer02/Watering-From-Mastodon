@@ -4,11 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="36a107e2-74c1-4381-83aa-855340a68c95" name="Changes" comment="Adapted the thresholds and actions on MQTT">
+    <list default="true" id="36a107e2-74c1-4381-83aa-855340a68c95" name="Changes" comment="More passive-aggressive beauty">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/auxi.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/auxi.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/instance/db.sqlite" beforeDir="false" afterPath="$PROJECT_DIR$/src/instance/db.sqlite" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -204,7 +201,15 @@
       <option name="project" value="LOCAL" />
       <updated>1717944245141</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary="More passive-aggressive beauty">
+      <option name="closed" value="true" />
+      <created>1717957112388</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1717957112388</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -238,6 +243,7 @@
     <MESSAGE value="Added some stuff that I honestly forgot" />
     <MESSAGE value="Mastodon messaging on threshold breach" />
     <MESSAGE value="Adapted the thresholds and actions on MQTT" />
-    <option name="LAST_COMMIT_MESSAGE" value="Adapted the thresholds and actions on MQTT" />
+    <MESSAGE value="More passive-aggressive beauty" />
+    <option name="LAST_COMMIT_MESSAGE" value="More passive-aggressive beauty" />
   </component>
 </project>

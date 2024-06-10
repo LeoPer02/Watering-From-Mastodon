@@ -624,7 +624,7 @@ def set_threshold():
                          humidity_value_high=humidity_value_high, ca_id=ca)
         with app.app_context():
             t = Threshold.query.filter_by(ca=ca).first()
-            event = f"{ca}\n{t.light_value_low} {t.light_value_high}\n{t.moisture_value_low} {t.moisture_value_high}\n{t.humidity_value_low} {t.humidity_value_high}\n{t.temperature_value_low} {t.temperature_value_high}"
+            event = f"{ca} {t.light_value_low} {t.light_value_high} {t.moisture_value_low} {t.moisture_value_high} {t.humidity_value_low} {t.humidity_value_high} {t.temperature_value_low} {t.temperature_value_high}"
             mqtt_client.publish("thresholds", event)
         return "", 200
 
