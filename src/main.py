@@ -600,14 +600,14 @@ def set_threshold():
     if request.method == 'POST':
         try:
             ca = int(request.form["control_agent"]) if "control_agent" in request.form else None
-            light_value_high = float(request.form["light_value_high"]) if "light_value_high" in request.form else None
-            light_value_low = float(request.form["light_value_low"]) if "light_value_low" in request.form else None
-            moisture_value_high = float(request.form["moisture_value_high"]) if "moisture_value_high" in request.form else None
-            moisture_value_low = float(request.form["moisture_value_low"]) if "moisture_value_low" in request.form else None
-            temperature_value_high = float(request.form["temperature_value_high"]) if "temperature_value_high" in request.form else None
-            temperature_value_low = float(request.form["temperature_value_low"]) if "temperature_value_low" in request.form else None
-            humidity_value_high = float(request.form["humidity_value_high"]) if "humidity_value_high" in request.form else None
-            humidity_value_low = float(request.form["humidity_value_low"]) if "humidity_value_low" in request.form else None
+            light_value_high = int(request.form["light_value_high"]) if "light_value_high" in request.form else None
+            light_value_low = int(request.form["light_value_low"]) if "light_value_low" in request.form else None
+            moisture_value_high = int(request.form["moisture_value_high"]) if "moisture_value_high" in request.form else None
+            moisture_value_low = int(request.form["moisture_value_low"]) if "moisture_value_low" in request.form else None
+            temperature_value_high = int(request.form["temperature_value_high"]) if "temperature_value_high" in request.form else None
+            temperature_value_low = int(request.form["temperature_value_low"]) if "temperature_value_low" in request.form else None
+            humidity_value_high = int(request.form["humidity_value_high"]) if "humidity_value_high" in request.form else None
+            humidity_value_low = int(request.form["humidity_value_low"]) if "humidity_value_low" in request.form else None
         except (TypeError, ValueError):
             error = {
                 "error": "You provided an invalid value for one of the thresholds"
