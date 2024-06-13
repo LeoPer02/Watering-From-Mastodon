@@ -1,0 +1,31 @@
+services:
+  python_server:
+    build: .
+    ports:
+      - "5000:5000"
+    volumes:
+      - .:/app
+    depends_on:
+      - mqtt
+    env_file:
+      - .env
+    networks:
+      - mynet
+
+
+  mqtt:
+    image: eclipse-mosquitto:latest
+    hostname: mosquitto
+    container_name: mosquitto
+    restart: unless-stopped
+    ports:
+    - "1883:1883"
+    - "9001:9001"
+    volumes:
+      - ./mosquitto:/etc/mosquitto
+      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf
+    networks:
+      - mynet
+
+networks:
+  mynet:

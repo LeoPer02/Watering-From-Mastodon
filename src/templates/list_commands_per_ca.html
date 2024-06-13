@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>List of Commands sent to Control Agent {{ca.id}}</title>
+</head>
+<body>
+{% if n == 0 %}
+<h1>No commands were found for Control Agent {{ca.id}}</h1>
+{% else %}
+<h1>Listing Control Agent {{ca.id}}'s Commands:</h1>
+{%for command in commands %}
+<p>{{command.command}} -> {{command.created_date}}</p>
+{%endfor%}
+{% endif %}
+</body>
+</html>
