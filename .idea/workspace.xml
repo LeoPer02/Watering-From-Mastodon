@@ -4,9 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="36a107e2-74c1-4381-83aa-855340a68c95" name="Changes" comment="Return name in CA listing">
+    <list default="true" id="36a107e2-74c1-4381-83aa-855340a68c95" name="Changes" comment="Fixed empty name">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/instance/db.sqlite" beforeDir="false" afterPath="$PROJECT_DIR$/src/instance/db.sqlite" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -242,7 +242,15 @@
       <option name="project" value="LOCAL" />
       <updated>1718295266970</updated>
     </task>
-    <option name="localTasksCounter" value="13" />
+    <task id="LOCAL-00013" summary="Fixed empty name">
+      <option name="closed" value="true" />
+      <created>1718299897241</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1718299897241</updated>
+    </task>
+    <option name="localTasksCounter" value="14" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -281,6 +289,7 @@
     <MESSAGE value="Change values of thresholds to int" />
     <MESSAGE value="Added timestamp to pools" />
     <MESSAGE value="Return name in CA listing" />
-    <option name="LAST_COMMIT_MESSAGE" value="Return name in CA listing" />
+    <MESSAGE value="Fixed empty name" />
+    <option name="LAST_COMMIT_MESSAGE" value="Fixed empty name" />
   </component>
 </project>

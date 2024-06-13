@@ -566,13 +566,13 @@ def insert_threshold(light_value_low, light_value_high, moisture_value_low, mois
         # ====================== DEFAULT VALUES FOR THRESHOLD =============================
 
         if not light_value_low:
-            light_value_low = 100
+            light_value_low = 250
         if not light_value_high:
-            light_value_high = 200
+            light_value_high = 450
         if not moisture_value_low:
-            moisture_value_low = 0
+            moisture_value_low = 150
         if not moisture_value_high:
-            moisture_value_high = 100
+            moisture_value_high = 450
         if not temperature_value_low:
             temperature_value_low = 0
         if not temperature_value_high:
