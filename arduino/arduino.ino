@@ -73,6 +73,6 @@ Actuator blue(41);
 Actuator red(44);
 
 SensorData d(0,0,0,0);
-Threshold t[] = {{100,200},{100,200},{100,200},{100,200}};
+Threshold t[] = {{150,450},{0,40},{250,450},{0,25}};
 
 
