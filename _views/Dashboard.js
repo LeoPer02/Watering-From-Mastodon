@@ -43,7 +43,6 @@ class Dashboard extends Component {
     try {
       this.setState({ loading: true });
       const plants = await accountService.control_agents();
-      console.log(plants);
       this.setState({ plants: plants, loading: false });
     } catch (error) {
       console.error(error);
@@ -60,7 +59,6 @@ class Dashboard extends Component {
       });
       this.reloadPlants();
     } catch (error) {
-      console.log(error);
       Toast.show({
         type: 'error',
         text1: 'Failed to send command',
@@ -139,7 +137,6 @@ class Dashboard extends Component {
       this.reloadPlants();
       this.closeThresholdModal();
     } catch (error) {
-      console.log(error);
       Toast.show({
         type: 'error',
         text1: 'Failed to update thresholds',
@@ -153,7 +150,6 @@ class Dashboard extends Component {
       const selectedPlantPool = pools.find(p => p.id === plant.id);
       this.setState({ poolData: selectedPlantPool.pool, showPoolModal: true, selectedPlant: plant });
     } catch (error) {
-      console.log(error);
       Toast.show({
         type: 'error',
         text1: 'Failed to fetch pool data',
