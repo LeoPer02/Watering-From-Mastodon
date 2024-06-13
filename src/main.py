@@ -362,7 +362,7 @@ def add_control_agent():
         ca_ip = request.form["control_agent_ip"]
         ca_port = request.form["control_agent_port"]
         name = None
-        if "control_agent_name" not in request.form:
+        if "control_agent_name" not in request.form or request.form["control_agent_name"] == "":
             index = random.randrange(len(funny_plant_names))
             name = funny_plant_names[index]
             funny_plant_names.pop(index)
