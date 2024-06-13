@@ -4,7 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="36a107e2-74c1-4381-83aa-855340a68c95" name="Changes" comment="Changed parsing for thresholds since arduino is useless">
+    <list default="true" id="36a107e2-74c1-4381-83aa-855340a68c95" name="Changes" comment="Change values of thresholds to int">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/instance/db.sqlite" beforeDir="false" afterPath="$PROJECT_DIR$/src/instance/db.sqlite" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -217,7 +219,15 @@
       <option name="project" value="LOCAL" />
       <updated>1718011317712</updated>
     </task>
-    <option name="localTasksCounter" value="10" />
+    <task id="LOCAL-00010" summary="Change values of thresholds to int">
+      <option name="closed" value="true" />
+      <created>1718011581293</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1718011581293</updated>
+    </task>
+    <option name="localTasksCounter" value="11" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -253,6 +263,7 @@
     <MESSAGE value="Adapted the thresholds and actions on MQTT" />
     <MESSAGE value="More passive-aggressive beauty" />
     <MESSAGE value="Changed parsing for thresholds since arduino is useless" />
-    <option name="LAST_COMMIT_MESSAGE" value="Changed parsing for thresholds since arduino is useless" />
+    <MESSAGE value="Change values of thresholds to int" />
+    <option name="LAST_COMMIT_MESSAGE" value="Change values of thresholds to int" />
   </component>
 </project>
