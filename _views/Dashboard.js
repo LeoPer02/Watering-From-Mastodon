@@ -230,7 +230,7 @@ class Dashboard extends Component {
           <View style={styles.logsContainer}>
             {item.commands && item.commands.length > 0 ? (
               <FlatList
-                data={item.commands}
+                data={[...item.commands].reverse()}
                 renderItem={({ item }) => {
                   const createdDate = new Date(item.created_date);
                   const year = createdDate.getFullYear();

@@ -2,7 +2,7 @@ import { fetchWrapper } from './fetchWrapper';
 import { BehaviorSubject } from 'rxjs';
 
 const userSubject = new BehaviorSubject(null);
-const apiUrl = 'http://172.18.0.3:5000';
+const apiUrl = 'http://172.18.0.1:5000';
 const baseUrl = `${apiUrl}`;
 const apiToken =
   '3';
