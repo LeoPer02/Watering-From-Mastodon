@@ -26,7 +26,7 @@
 
             buildInputs = with pkgs; [
                 arduino-ide python3
-                docker
+                docker-compose
                 mqtt-explorer
             ];
 

@@ -3,7 +3,7 @@
 
 #define BUF_SIZE 50
 
-#define MQTT_ID   "1"
+#define MQTT_ID   1
 
 #define TOPIC_ACTIONS   "actions"
 #define TOPIC_POOL      "pool"
@@ -52,12 +52,16 @@ class Threshold {
     low = l;
    }
 
-
+  String toString(){
+    String res =  String(low) + " " + String(high);
+    return res;
+  }
 };
 
 WiFiClient wifiClient;
 MqttClient mqttClient(wifiClient);
 
+Threshold t[] = {{100,200},{100,200},{},{}};
 
 
 char buf[BUF_SIZE];

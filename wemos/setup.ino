@@ -9,17 +9,15 @@ void setup() {
   while (!Serial) {
     ; // wait for serial port to connect. Needed for native USB port only
   }
-  while (!Serial1) {
-    ; // wait for serial port to connect. Needed for native USB port only
-  }
 
   // attempt to connect to Wifi network:
   Serial.print("Attempting to connect to WPA SSID: ");
   Serial.println(ssid);
-  while (WiFi.begin(ssid, pass) != WL_CONNECTED) {
+  WiFi.begin(ssid, pass);
+  while (WiFi.status() != WL_CONNECTED) {
     // failed, retry
     Serial.print(".");
-    delay(5000);
+    delay(500);
   }
 
   Serial.println("You're connected to the network");
@@ -31,6 +29,7 @@ void setup() {
   while (!mqttClient.connect(broker, port)) {
     Serial.print("MQTT connection failed! Error code = ");
     Serial.println(mqttClient.connectError());
+    delay(500);
   }
 
   Serial.println("You're connected to the MQTT broker!");
@@ -41,4 +40,5 @@ void setup() {
   Serial.println("Subscribing to topics");
   mqttClient.subscribe(TOPIC_THRESHOLDS);
   mqttClient.subscribe(TOPIC_COMMANDS);
+  Serial.println("Connect the Serial cables now please");
 }
