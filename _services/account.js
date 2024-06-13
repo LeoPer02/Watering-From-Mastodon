@@ -85,7 +85,7 @@ function set_thresholds(params) {
 }
 
 function pool() {
-  return fetchWrapper.get(`${baseUrl}/test/pool`);
+  return fetchWrapper.get(`${baseUrl}/pool`);
 }
 
 // Helper functions for managing token refresh
