@@ -59,7 +59,13 @@ function control_agents() {
 }
 
 function add_ca(control_agent_name, control_agent_ip, control_agent_port) {
-  const params = { control_agent_name, control_agent_ip, control_agent_port };
+  const params = { control_agent_ip, control_agent_port };
+
+  if (control_agent_name && control_agent_name.trim() !== '') {
+    params.control_agent_name = control_agent_name;
+  }
+
+  console.log(params);
   return fetchWrapper.post(`${baseUrl}/add_ca`, params);
 }
 

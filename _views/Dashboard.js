@@ -211,7 +211,7 @@ class Dashboard extends Component {
   renderCard = ({ item }) => {
     const { expandedPlantIds } = this.state;
     const isExpanded = expandedPlantIds.includes(item.id);
-  
+    console.log(item.commands);
     return (
       <View style={styles.card}>
         <View style={styles.cardHeader}>
@@ -264,9 +264,10 @@ class Dashboard extends Component {
                   const formattedDate = `${year}-${month}-${day} ${hours}-${minutes}`;
   
                   const command = item.command.charAt(0).toUpperCase() + item.command.slice(1);
+                  const autoMessage = item.issuer === -1 ? "made automatically by control agent" : "";
                   return (
                     <Text style={styles.logText}>
-                      [{formattedDate}] Action- {command}
+                      [{formattedDate}] Action- {command} {autoMessage}
                     </Text>
                   );
                 }}
@@ -497,7 +498,7 @@ class Dashboard extends Component {
             <View style={styles.modalContainer}>
               <Text style={styles.modalText}>Current values: {this.state.selectedPlant && this.state.selectedPlant.name}</Text>
               <FlatList
-                data={poolData}
+                data={ [...poolData].reverse()}
                 renderItem={({ item }) => (
                   <View style={styles.poolItem}>
                     <Text style={styles.poolDate}>{this.formatDate(item.date)}</Text>
