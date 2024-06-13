@@ -339,6 +339,7 @@ def list_control_agents():
         logging.log(logging.ERROR, f"Commands: {new_commands}")
         temp = {
             "id": i.id,
+            "name": i.name,
             "ip": i.ip,
             "port": i.port,
             "commands": new_commands
