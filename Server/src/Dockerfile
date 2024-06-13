@@ -2,7 +2,7 @@
 FROM python:latest
 
 # copy the requirements file into the image
-COPY ./requirements.txt /app/requirements.txt
+COPY requirements.txt /app/requirements.txt
 
 ENV SECRET_KEY="this is where you should place your secret key"
 ENV MQTT_BROKER="localhost"
