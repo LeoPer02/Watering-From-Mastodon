@@ -226,6 +226,26 @@ class Dashboard extends Component {
           </View>
         </View>
         <Text style={styles.text}>{item.ip}:{item.port}</Text>
+        <View style={styles.buttonContainer}>
+          <Button
+            title="Water"
+            onPress={() => {
+              this.handleSendCommand(item.id, 'water');
+            }}
+          />
+          <Button
+            title="Heat"
+            onPress={() => this.handleSendCommand(item.id, 'heat')}
+          />
+          <Button
+            title="Light"
+            onPress={() => this.handleSendCommand(item.id, 'light')}
+          />
+          <Button
+            title="Thresholds"
+            onPress={() => this.openThresholdModal(item)}
+          />
+        </View>
         <TouchableOpacity onPress={() => this.toggleExpand(item.id)} style={styles.expandButton}>
           <Text style={styles.expandButtonText}>{isExpanded ? 'Hide Logs' : 'Show Logs'}</Text>
         </TouchableOpacity>
@@ -643,6 +663,11 @@ const styles = StyleSheet.create({
   },
   poolText: {
     color: 'black',
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 8,
   },
 });
 
